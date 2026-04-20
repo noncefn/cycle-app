@@ -6,6 +6,7 @@ import { EraPanel } from "./components/EraPanel";
 import { PortfolioPanel } from "./components/PortfolioPanel";
 import { IndicatorHeatmap } from "./components/IndicatorHeatmap";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ReportPanel } from "./components/ReportPanel";
 
 export default function App() {
   const loading = useApp((s) => s.loading);
@@ -39,6 +40,8 @@ export default function App() {
         <ErrorBoundary label="CLI 구간"><EraPanel /></ErrorBoundary>
         <ErrorBoundary label="포트폴리오"><PortfolioPanel /></ErrorBoundary>
       </div>
+
+      <ErrorBoundary label="보고서"><ReportPanel /></ErrorBoundary>
     </div>
   );
 }

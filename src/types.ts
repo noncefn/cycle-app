@@ -32,6 +32,7 @@ export interface EraSegment {
   phase: Phase | "미정";
   months: number;
   returns: Record<string, number>; // asset -> pct change
+  prices?: Record<string, { start: number; end: number }>; // raw opening/closing prices
   rawLabel: string;     // original text line
 }
 

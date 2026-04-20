@@ -60,17 +60,22 @@ function parseHeader(line: string): Omit<EraSegment, "returns"> | null {
   };
 }
 
-function parseReturn(line: string): [string, number] | null {
+function parseReturn(line: string): { asset: string; pct: number; start: number; end: number } | null {
   // "* SPX: 968.67 → 797.87 (-17.63%)"
-  const m = line.match(/^\*\s*([A-Z0-9]+)\s*:\s*[\d.,]+\s*→\s*[\d.,]+\s*\(([+-]?\d+(?:\.\d+)?)%\)/);
+  const m = line.match(/^\*\s*([A-Z0-9]+)\s*:\s*([\d.,]+)\s*→\s*([\d.,]+)\s*\(([+-]?\d+(?:\.\d+)?)%\)/);
   if (!m) return null;
-  return [m[1], Number(m[2])];
+  return {
+    asset: m[1],
+    start: Number(m[2].replace(/,/g, "")),
+    end: Number(m[3].replace(/,/g, "")),
+    pct: Number(m[4]),
+  };
 }
 
 export function parseEra(text: string): EraSegment[] {
   const lines = text.split(/\r?\n/);
   const segments: EraSegment[] = [];
-  let current: (Omit<EraSegment, "returns"> & { returns: Record<string, number> }) | null = null;
+  let current: (Omit<EraSegment, "returns" | "prices"> & { returns: Record<string, number>; prices: Record<string, { start: number; end: number }> }) | null = null;
 
   for (const raw of lines) {
     const line = raw.trim();
@@ -78,14 +83,17 @@ export function parseEra(text: string): EraSegment[] {
 
     if (line.startsWith("*")) {
       const r = parseReturn(line);
-      if (r && current) current.returns[r[0]] = r[1];
+      if (r && current) {
+        current.returns[r.asset] = r.pct;
+        current.prices[r.asset] = { start: r.start, end: r.end };
+      }
       continue;
     }
 
     const header = parseHeader(line);
     if (header) {
       if (current) segments.push(current);
-      current = { ...header, returns: {} };
+      current = { ...header, returns: {}, prices: {} };
     }
   }
   if (current) segments.push(current);
