@@ -28,9 +28,11 @@ export default function App() {
 
       <ErrorBoundary label="차트"><CycleChart /></ErrorBoundary>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.1fr)", gap: 12, marginTop: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.1fr)", gap: 12, marginTop: 12, alignItems: "start" }}>
         <ErrorBoundary label="월 상세"><MonthDetailPanel /></ErrorBoundary>
-        <ErrorBoundary label="히트맵"><IndicatorHeatmap /></ErrorBoundary>
+        <div style={{ position: "sticky", top: 16, maxHeight: "calc(100vh - 32px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <ErrorBoundary label="히트맵"><IndicatorHeatmap /></ErrorBoundary>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, marginTop: 12 }}>
