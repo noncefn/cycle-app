@@ -2,7 +2,7 @@
 
 최신 커밋이 위쪽. 각 엔트리는 `short-hash — 제목 (날짜)` + 변경 요약 bullet.
 
-## <next> — 월별 총정리 commentary 기능 추가 (2026-04-20)
+## 87007e4 — 월별 총정리 commentary 기능 추가 (2026-04-20)
 - 신규: `src/data/manualCommentary.ts` — `MANUAL_COMMENTARY: Record<month, string>` 맵
 - 수정: `MonthDetailPanel.tsx` 하단에 commentary 있으면 좌측 accent 바 + 박스로 렌더 (없으면 숨김)
 - 재판정 시 월별 요약 텍스트 채우는 용도
