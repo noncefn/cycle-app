@@ -1,6 +1,7 @@
 import { useApp } from "../store";
 import type { IndicatorDef } from "../types";
 import { PHASES, PHASE_COLORS, type Phase } from "../types";
+import { MANUAL_COMMENTARY } from "../data/manualCommentary";
 
 export function MonthDetailPanel() {
   const month = useApp((s) => s.selectedMonth);
@@ -93,6 +94,22 @@ export function MonthDetailPanel() {
       <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
         클릭하여 순환: ○ 비해당 → ◐ 부(Half) → ● 주(Full) → ○. 주 국면은 지표당 1개만.
       </div>
+
+      {MANUAL_COMMENTARY[month] && (
+        <div style={{
+          marginTop: 12, padding: "10px 12px",
+          background: "var(--bg-elev)",
+          border: "1px solid var(--border-subtle)",
+          borderLeft: "3px solid var(--accent)",
+          borderRadius: 4,
+          fontSize: 12, lineHeight: 1.55, color: "var(--text)",
+        }}>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4, fontWeight: 600, letterSpacing: 0.3 }}>
+            총정리
+          </div>
+          <div style={{ whiteSpace: "pre-wrap" }}>{MANUAL_COMMENTARY[month]}</div>
+        </div>
+      )}
     </div>
   );
 }

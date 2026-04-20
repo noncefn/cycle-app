@@ -2,6 +2,11 @@
 
 최신 커밋이 위쪽. 각 엔트리는 `short-hash — 제목 (날짜)` + 변경 요약 bullet.
 
+## <next> — 월별 총정리 commentary 기능 추가 (2026-04-20)
+- 신규: `src/data/manualCommentary.ts` — `MANUAL_COMMENTARY: Record<month, string>` 맵
+- 수정: `MonthDetailPanel.tsx` 하단에 commentary 있으면 좌측 accent 바 + 박스로 렌더 (없으면 숨김)
+- 재판정 시 월별 요약 텍스트 채우는 용도
+
 ## 7c6aacd — 수동 AI 판정 2008-11~2010-06 (20개월, OECD era 의식 가능) (2026-04-20)
 - manualScores.ts: 20개월 × 17지표 × 4국면 정성 판정 + 근거 추가
 - CLAUDE.md: `AI 수동 판정 워크플로우` 섹션 신설
