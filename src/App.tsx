@@ -5,7 +5,6 @@ import { MonthDetailPanel } from "./components/MonthDetailPanel";
 import { EraModal } from "./components/EraModal";
 import { IndicatorHeatmap } from "./components/IndicatorHeatmap";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { ReportPanel } from "./components/ReportPanel";
 
 export default function App() {
   const loading = useApp((s) => s.loading);
@@ -34,8 +33,6 @@ export default function App() {
           <ErrorBoundary label="히트맵"><IndicatorHeatmap /></ErrorBoundary>
         </div>
       </div>
-
-      <ErrorBoundary label="보고서"><ReportPanel /></ErrorBoundary>
 
       <ErrorBoundary label="리서치 모달"><EraModal /></ErrorBoundary>
     </div>
