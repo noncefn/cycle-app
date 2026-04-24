@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# python / scripts
+scripts/__pycache__
+scripts/.venv
+*.pyc
+
+# claude worktrees
+.claude/worktrees/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
