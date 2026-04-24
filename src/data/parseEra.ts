@@ -7,6 +7,7 @@ import type { EraSegment, Phase } from "../types";
 //   "2024년 06월 침체기 (1개월)"  (single-month)
 //   "2026년 04월 01일 ~ 2026년 04월 19일 국면 미정 (19일)"
 //   "* SPX: 968.67 → 797.87 (-17.63%)"
+//   "# 대내 정치"  — 6관점 정성 리서치 섹션 헤딩 (본문은 다음 줄 이후)
 
 const PHASE_MAP: Record<string, Phase> = {
   침체기: "침체",
@@ -75,11 +76,61 @@ function parseReturn(line: string): { asset: string; pct: number; start: number;
 export function parseEra(text: string): EraSegment[] {
   const lines = text.split(/\r?\n/);
   const segments: EraSegment[] = [];
-  let current: (Omit<EraSegment, "returns" | "prices"> & { returns: Record<string, number>; prices: Record<string, { start: number; end: number }> }) | null = null;
+  type Draft = Omit<EraSegment, "returns" | "prices"> & {
+    returns: Record<string, number>;
+    prices: Record<string, { start: number; end: number }>;
+    research: Record<string, string>;
+    researchOrder: string[];
+  };
+  let current: Draft | null = null;
+  let activeSection: string | null = null;
+
+  const flush = (s: Draft) => {
+    // Trim each section body + drop empty sections
+    for (const k of [...s.researchOrder]) {
+      const v = (s.research[k] ?? "").trim();
+      if (!v) {
+        delete s.research[k];
+        const idx = s.researchOrder.indexOf(k);
+        if (idx >= 0) s.researchOrder.splice(idx, 1);
+      } else {
+        s.research[k] = v;
+      }
+    }
+    const clean: EraSegment = {
+      start: s.start,
+      end: s.end,
+      phase: s.phase,
+      months: s.months,
+      rawLabel: s.rawLabel,
+      returns: s.returns,
+      prices: s.prices,
+    };
+    if (s.researchOrder.length > 0) {
+      clean.research = s.research;
+      clean.researchOrder = s.researchOrder;
+    }
+    segments.push(clean);
+  };
 
   for (const raw of lines) {
     const line = raw.trim();
     if (!line) continue;
+
+    // Research section heading: "# 대내 정치"
+    if (line.startsWith("#")) {
+      if (current) {
+        const label = line.replace(/^#+\s*/, "").trim();
+        if (label) {
+          activeSection = label;
+          if (!(label in current.research)) {
+            current.research[label] = "";
+            current.researchOrder.push(label);
+          }
+        }
+      }
+      continue;
+    }
 
     if (line.startsWith("*")) {
       const r = parseReturn(line);
@@ -87,16 +138,25 @@ export function parseEra(text: string): EraSegment[] {
         current.returns[r.asset] = r.pct;
         current.prices[r.asset] = { start: r.start, end: r.end };
       }
+      // return lines never contribute to research bodies
       continue;
     }
 
     const header = parseHeader(line);
     if (header) {
-      if (current) segments.push(current);
-      current = { ...header, returns: {}, prices: {} };
+      if (current) flush(current);
+      current = { ...header, returns: {}, prices: {}, research: {}, researchOrder: [] };
+      activeSection = null;
+      continue;
+    }
+
+    // Free text line: append to active research section if any
+    if (current && activeSection) {
+      const prev = current.research[activeSection];
+      current.research[activeSection] = prev ? prev + " " + line : line;
     }
   }
-  if (current) segments.push(current);
+  if (current) flush(current);
 
   return segments;
 }

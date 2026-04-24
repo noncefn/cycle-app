@@ -16,6 +16,7 @@ export function CycleChart() {
   const selectedEra = useApp((s) => s.selectedEraMonth);
   const selectMonth = useApp((s) => s.selectMonth);
   const selectEra = useApp((s) => s.selectEraMonth);
+  const openEraModal = useApp((s) => s.openEraModal);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<MonthKey | null>(null);
@@ -38,18 +39,22 @@ export function CycleChart() {
 
   return (
     <div ref={wrapRef} className="cycle-chart">
-      <div className="cycle-chart-header">
+      <div className="cycle-chart-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 24, marginBottom: 6 }}>
         <Legend />
-        {hover && (
-          <div className="cycle-chart-hover">
-            <strong>{hover}</strong>{"  "}
-            {scores[hover] && (
-              <span style={{ color: "var(--text-muted)" }}>
-                총점: {PHASES.map((p) => `${p[0]} ${scores[hover].totals[p]}`).join(" / ")}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="cycle-chart-hover" style={{ fontSize: 12, minHeight: 18, textAlign: "right", whiteSpace: "nowrap" }}>
+          {hover ? (
+            <>
+              <strong>{hover}</strong>{"  "}
+              {scores[hover] && (
+                <span style={{ color: "var(--text-muted)" }}>
+                  총점: {PHASES.map((p) => `${p[0]} ${scores[hover].totals[p]}`).join(" / ")}
+                </span>
+              )}
+            </>
+          ) : (
+            <span style={{ color: "var(--text-dim)" }}>바 위에 마우스를 올리면 정보가 표시됩니다</span>
+          )}
+        </div>
       </div>
 
       <svg
@@ -129,7 +134,7 @@ export function CycleChart() {
               height={CLI_H}
               fill={color}
               opacity={isSelectedEra || selectedEraIdx === undefined ? 1 : 0.5}
-              onClick={() => selectEra(m)}
+              onClick={() => openEraModal(m)}
               onMouseEnter={() => setHover(m)}
               style={{ cursor: "pointer" }}
             />

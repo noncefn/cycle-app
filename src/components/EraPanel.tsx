@@ -5,6 +5,7 @@ export function EraPanel() {
   const selectedEraMonth = useApp((s) => s.selectedEraMonth);
   const eraSegments = useApp((s) => s.eraSegments);
   const monthToEra = useApp((s) => s.monthToEra);
+  const openEraModal = useApp((s) => s.openEraModal);
 
   if (!selectedEraMonth) return <div className="card">아래 CLI 바를 클릭하면 구간 수익률이 나옵니다.</div>;
   const idx = monthToEra.get(selectedEraMonth);
@@ -13,10 +14,20 @@ export function EraPanel() {
 
   const sorted = Object.entries(seg.returns).sort((a, b) => b[1] - a[1]);
   const color = seg.phase !== "미정" ? PHASE_COLORS[seg.phase as Phase] : "#6b7280";
+  const hasResearch = (seg.researchOrder?.length ?? 0) > 0;
 
   return (
     <div className="card">
-      <h2 style={{ margin: 0 }}>OECD CLI 구간</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={{ margin: 0 }}>OECD CLI 구간</h2>
+        {hasResearch && (
+          <button
+            className="primary"
+            onClick={() => openEraModal()}
+            style={{ fontSize: 12, padding: "4px 10px" }}
+          >정성 리서치 보기</button>
+        )}
+      </div>
       <div style={{ marginTop: 6, marginBottom: 10 }}>
         <span style={{
           display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 12,

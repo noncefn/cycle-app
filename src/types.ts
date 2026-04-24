@@ -34,6 +34,8 @@ export interface EraSegment {
   returns: Record<string, number>; // asset -> pct change
   prices?: Record<string, { start: number; end: number }>; // raw opening/closing prices
   rawLabel: string;     // original text line
+  research?: Record<string, string>; // section label -> body (6 perspectives)
+  researchOrder?: string[]; // preserve section order as authored in era.txt
 }
 
 export interface MonthScores {

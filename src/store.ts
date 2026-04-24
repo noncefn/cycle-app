@@ -21,10 +21,13 @@ interface AppState {
 
   selectedMonth: MonthKey | null;
   selectedEraMonth: MonthKey | null;
+  eraModalOpen: boolean;
 
   init(): Promise<void>;
   selectMonth(m: MonthKey | null): void;
   selectEraMonth(m: MonthKey | null): void;
+  openEraModal(m?: MonthKey): void;
+  closeEraModal(): void;
   editIndicator(month: MonthKey, key: string, update: { main?: Phase | null; side?: Phase[] }): void;
   resetMonth(month: MonthKey): void;
 }
@@ -49,6 +52,7 @@ export const useApp = create<AppState>((set, get) => ({
   scores: {},
   selectedMonth: null,
   selectedEraMonth: null,
+  eraModalOpen: false,
 
   async init() {
     try {
@@ -86,6 +90,11 @@ export const useApp = create<AppState>((set, get) => ({
 
   selectMonth(m) { set({ selectedMonth: m }); },
   selectEraMonth(m) { set({ selectedEraMonth: m }); },
+  openEraModal(m) {
+    if (m !== undefined) set({ selectedEraMonth: m, eraModalOpen: true });
+    else set({ eraModalOpen: true });
+  },
+  closeEraModal() { set({ eraModalOpen: false }); },
 
   editIndicator(month, key, update) {
     const state = get();

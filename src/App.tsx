@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { useApp } from "./store";
 import { CycleChart } from "./components/CycleChart";
 import { MonthDetailPanel } from "./components/MonthDetailPanel";
-import { EraPanel } from "./components/EraPanel";
-import { PortfolioPanel } from "./components/PortfolioPanel";
+import { EraModal } from "./components/EraModal";
 import { IndicatorHeatmap } from "./components/IndicatorHeatmap";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ReportPanel } from "./components/ReportPanel";
@@ -36,12 +35,9 @@ export default function App() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, marginTop: 12 }}>
-        <ErrorBoundary label="CLI 구간"><EraPanel /></ErrorBoundary>
-        <ErrorBoundary label="포트폴리오"><PortfolioPanel /></ErrorBoundary>
-      </div>
-
       <ErrorBoundary label="보고서"><ReportPanel /></ErrorBoundary>
+
+      <ErrorBoundary label="리서치 모달"><EraModal /></ErrorBoundary>
     </div>
   );
 }
