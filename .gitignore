@@ -22,8 +22,13 @@ scripts/__pycache__
 scripts/.venv
 *.pyc
 
-# claude worktrees
+# claude worktrees / agent artifacts
 .claude/worktrees/
+.claude/agent-memory/
+.claude/agents/
+
+# deep-research pptx output
+pt_result/
 
 # Editor directories and files
 .vscode/*
