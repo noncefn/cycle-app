@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useApp } from "../store";
 import { INDICATORS, type IndicatorMeta } from "../data/indicators";
 import { cellBg, cellFg, percentileRank, INDICATOR_DIRECTION } from "../scoring/heatmapColor";
@@ -61,18 +61,100 @@ export function IndicatorHeatmap() {
     if (el) el.scrollLeft = el.scrollWidth;
   }, [selectedMonth, cols.length]);
 
+  const [pinnedKeys, setPinnedKeys] = useState<string[]>([]);
+
+  const togglePin = (key: string) => {
+    setPinnedKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [key, ...prev],
+    );
+  };
+  const resetPins = () => setPinnedKeys([]);
+
   if (!selectedMonth || !data) return <div className="card">로딩 중...</div>;
 
+  const pinnedSet = new Set(pinnedKeys);
+  const pinnedIndicators = pinnedKeys
+    .map((k) => INDICATORS.find((i) => i.key === k))
+    .filter((i): i is IndicatorMeta => !!i);
+
   const byCategory: Record<string, IndicatorMeta[]> = {};
-  for (const ind of INDICATORS) (byCategory[ind.category] ||= []).push(ind);
+  for (const ind of INDICATORS) {
+    if (pinnedSet.has(ind.key)) continue;
+    (byCategory[ind.category] ||= []).push(ind);
+  }
+
+  const renderRow = (ind: IndicatorMeta, isPinned: boolean) => {
+    const series = data.series[ind.key];
+    const direction = INDICATOR_DIRECTION[ind.key] ?? "pro";
+    return (
+      <tr key={ind.key}>
+        <td
+          onClick={() => togglePin(ind.key)}
+          style={{
+            ...labelCellStyle,
+            cursor: "pointer",
+            borderLeft: isPinned ? "2px solid var(--accent)" : "2px solid transparent",
+          }}
+          title={isPinned ? "클릭하여 고정 해제" : "클릭하여 상단 고정"}
+        >
+          <span style={{ fontWeight: 600 }}>{ind.label}</span>
+          <span style={{ color: "var(--text-dim)", fontSize: 9, marginLeft: 4 }}>
+            ({direction === "pro" ? "↑강세" : "↑약세"})
+          </span>
+        </td>
+        {cols.map((m) => {
+          const v = series?.get(m);
+          const lookback = series ? lookbackVals(series, data.months, m) : [];
+          const pct = v !== undefined && lookback.length >= 6
+            ? percentileRank(lookback, v)
+            : 0.5;
+          const bg = v !== undefined && lookback.length >= 6
+            ? cellBg(pct, direction)
+            : "transparent";
+          const fg = v !== undefined && lookback.length >= 6
+            ? cellFg(pct, direction)
+            : "var(--text-dim)";
+          const isSelected = m === selectedMonth;
+          return (
+            <td
+              key={m}
+              onClick={() => { selectMonth(m); selectEra(m); }}
+              style={{
+                ...cellStyle,
+                background: bg,
+                color: fg,
+                outline: isSelected ? "1.5px solid var(--accent)" : "none",
+                outlineOffset: -1,
+                cursor: "pointer",
+              }}
+              title={`${ind.label} ${m}: ${formatValue(ind, v)} (percentile ${Math.round(pct * 100)}%)`}
+            >
+              {formatValue(ind, v)}
+            </td>
+          );
+        })}
+      </tr>
+    );
+  };
 
   return (
     <div className="card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
         <h2 style={{ margin: 0 }}>경제지표 히트맵</h2>
-        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-          직전 24개월 · 색상: 60M percentile · 숫자 클릭 시 해당 월 선택
-        </span>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            직전 24개월 · 색상: 60M percentile · 지표명 클릭 시 상단 고정
+          </span>
+          {pinnedKeys.length > 0 && (
+            <button
+              onClick={resetPins}
+              style={resetBtnStyle}
+              title="고정 지표 전체 해제"
+            >
+              초기화 ({pinnedKeys.length})
+            </button>
+          )}
+        </div>
       </div>
 
       <div ref={scrollerRef} style={{ overflowX: "auto", overflowY: "auto" }}>
@@ -98,56 +180,20 @@ export function IndicatorHeatmap() {
             </tr>
           </thead>
           <tbody>
+            {pinnedIndicators.length > 0 && (
+              <Fragment>
+                <tr>
+                  <td colSpan={cols.length + 1} style={catRowStyle}>고정</td>
+                </tr>
+                {pinnedIndicators.map((ind) => renderRow(ind, true))}
+              </Fragment>
+            )}
             {Object.entries(byCategory).map(([cat, inds]) => (
               <Fragment key={cat}>
                 <tr>
                   <td colSpan={cols.length + 1} style={catRowStyle}>{cat}</td>
                 </tr>
-                {inds.map((ind) => {
-                  const series = data.series[ind.key];
-                  const direction = INDICATOR_DIRECTION[ind.key] ?? "pro";
-                  return (
-                    <tr key={ind.key}>
-                      <td style={labelCellStyle}>
-                        <span style={{ fontWeight: 600 }}>{ind.label}</span>
-                        <span style={{ color: "var(--text-dim)", fontSize: 9, marginLeft: 4 }}>
-                          ({direction === "pro" ? "↑강세" : "↑약세"})
-                        </span>
-                      </td>
-                      {cols.map((m) => {
-                        const v = series?.get(m);
-                        const lookback = series ? lookbackVals(series, data.months, m) : [];
-                        const pct = v !== undefined && lookback.length >= 6
-                          ? percentileRank(lookback, v)
-                          : 0.5;
-                        const bg = v !== undefined && lookback.length >= 6
-                          ? cellBg(pct, direction)
-                          : "transparent";
-                        const fg = v !== undefined && lookback.length >= 6
-                          ? cellFg(pct, direction)
-                          : "var(--text-dim)";
-                        const isSelected = m === selectedMonth;
-                        return (
-                          <td
-                            key={m}
-                            onClick={() => { selectMonth(m); selectEra(m); }}
-                            style={{
-                              ...cellStyle,
-                              background: bg,
-                              color: fg,
-                              outline: isSelected ? "1.5px solid var(--accent)" : "none",
-                              outlineOffset: -1,
-                              cursor: "pointer",
-                            }}
-                            title={`${ind.label} ${m}: ${formatValue(ind, v)} (percentile ${Math.round(pct * 100)}%)`}
-                          >
-                            {formatValue(ind, v)}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
+                {inds.map((ind) => renderRow(ind, false))}
               </Fragment>
             ))}
           </tbody>
@@ -201,4 +247,14 @@ const cellStyle: CSSProperties = {
   borderRight: "1px solid var(--border-subtle)",
   minWidth: 38,
   fontVariantNumeric: "tabular-nums",
+};
+
+const resetBtnStyle: CSSProperties = {
+  background: "transparent",
+  border: "1px solid var(--border)",
+  color: "var(--text-muted)",
+  fontSize: 11,
+  padding: "2px 8px",
+  borderRadius: 4,
+  cursor: "pointer",
 };
